@@ -127,89 +127,70 @@ def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-        
-        # Récupérer le token depuis les headers
         auth_header = request.headers.get('Authorization')
-        
+
         if auth_header and auth_header.startswith('Bearer '):
             token = auth_header.split(' ')[1]
-            
+
         if not token:
             return jsonify({'error': 'Token d\'authentification manquant'}), 401
-            
+
         try:
-            # Vérifier si le token est dans la liste noire
+            # Vérifier si le token est blacklisté
             blacklist_ref = db.collection('token_blacklist')
             if blacklist_ref.where('token', '==', token).get():
                 return jsonify({'error': 'Token invalide ou expiré'}), 401
-                
+
             # Vérifier et décoder le token
             secret_key = os.environ.get("JWT_SECRET_KEY", "votre_cle_secrete_par_defaut")
             payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-            print("Payload:", payload)
-            # Vérifier si le token est expiré
+
+            # Vérifier l’expiration
             if datetime.fromtimestamp(payload['exp']) < datetime.utcnow():
                 return jsonify({'error': 'Token expiré'}), 401
-                
-            # Stocker les informations du token pour l'utilisation dans la fonction
-            g.user_id = payload.get('_id')
+
+            # Sauvegarder les infos dans g
+            g.user_id = payload.get('user_id')
             g.email = payload.get('email')
-            g.role = payload.get('role')
-            
+            g.role = payload.get('user_type')   # cohérence avec create_token
+
         except jwt.ExpiredSignatureError:
             return jsonify({'error': 'Token expiré'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'error': 'Token invalide'}), 401
         except Exception as e:
             return jsonify({'error': f'Erreur lors de la validation du token: {str(e)}'}), 401
-            
+
         return f(*args, **kwargs)
     return decorated
 
+
 def admin_required(f):
     @wraps(f)
+    @token_required
     def decorated(*args, **kwargs):
-        # Utiliser d'abord le middleware token_required
-        token_result = token_required(lambda: None)()
-        if isinstance(token_result, tuple):  # En cas d'erreur
-            return token_result
-            
-        # Vérifier si l'utilisateur est un admin
-        if f.role != 'admin':
-            return jsonify({'error': 'Accès non autorisé. Droits d\'administrateur requis'}), 403
-            
+        if g.role != 'admin':
+            return jsonify({'error': 'Accès non autorisé. Admin requis'}), 403
         return f(*args, **kwargs)
     return decorated
 
 
 def vagabond_required(f):
     @wraps(f)
+    @token_required
     def decorated(*args, **kwargs):
-        print("Vagabond ca maman")
-        # Utiliser d'abord le middleware token_required
-        token_result = token_required(lambda: None)()
-        if isinstance(token_result, tuple):  # En cas d'erreur
-            return token_result
-            
-        # Vérifier si l'utilisateur est un vagabond
-        if f.role != 'vagabond':
-            return jsonify({'error': 'Accès non autorisé. Droits de vagabond requis'}), 403
-            
+        if g.role != 'vagabond':
+            return jsonify({'error': 'Accès non autorisé. Vagabond requis'}), 403
         return f(*args, **kwargs)
     return decorated
 
+
 def admin_or_vagabond_required(f):
     @wraps(f)
+    @token_required
     def decorated(*args, **kwargs):
-        # Utiliser d'abord le middleware token_required
-        token_result = token_required(lambda: None)()
-        if isinstance(token_result, tuple):  # En cas d'erreur
-            return token_result
-            
-        # Vérifier si l'utilisateur est un admin ou un vagabond
-        if f.user_type not in ['admin', 'vagabond']:
-            return jsonify({'error': 'Accès non autorisé. Droits d\'admin ou de vagabond requis'}), 403
-            
+        if g.role not in ['admin', 'vagabond']:
+            return jsonify({'error': 'Accès non autorisé. Admin ou Vagabond requis'}), 403
         return f(*args, **kwargs)
     return decorated
 
