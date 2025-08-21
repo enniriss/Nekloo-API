@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+
+/nekloo_venv/
+/addok-france-bundle.zip
+/admin.json
+/params.json
