@@ -33,8 +33,9 @@ def create_user():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     
-@admin_or_vagabond_required
+
 @app.route('/user/read/<document_id>', methods=['GET'])
+@admin_or_vagabond_required
 def get_my_user(document_id):
     try:
         print("document_id", document_id)
@@ -150,8 +151,9 @@ def logout():
 
 ############ Places ###########
 
-@admin_or_vagabond_required
+
 @app.route('/places', methods=['GET'])
+@admin_or_vagabond_required
 def get_all_places(collection_name):
     try:
         places = read_all_documents("places")
@@ -160,8 +162,8 @@ def get_all_places(collection_name):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@admin_or_vagabond_required
 @app.route('/places/<document_id>', methods=['GET'])
+@admin_or_vagabond_required
 def get_place(document_id):
     try:
         place = read_document("places", document_id)      
@@ -169,8 +171,9 @@ def get_place(document_id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     
-@admin_required
+
 @app.route('/places/create', methods=['POST'])
+@admin_required
 def create_place():
     try:
         document_data = request.json                
@@ -183,8 +186,8 @@ def create_place():
 
 
 ############ Suppositions ###########
-@vagabond_required
 @app.route('/user/<user_id>/supposition/create', methods=['POST'])
+@vagabond_required
 def create_supposition(user_id):
     try:
         doc_ref = db.collection("suppositions").document()
@@ -198,8 +201,8 @@ def create_supposition(user_id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@vagabond_required
 @app.route('/user/<user_id>/supposition/read', methods=['GET'])
+@vagabond_required
 def get_user_suppositions(user_id):
     try:
         suppositions = db.collection("suppositions").document(user_id).collection("supposition")
@@ -209,8 +212,8 @@ def get_user_suppositions(user_id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     
-@admin_required
 @app.route('/supposition/readall', methods=['GET'])
+@admin_required
 def get_all_suppositions():
     try:
         datas = []
@@ -227,8 +230,8 @@ def get_all_suppositions():
     
 
 ########## Likes ###########
-@vagabond_required
 @app.route('/like/<vagabond_id>/<place_id>', methods=['POST'])
+@vagabond_required
 def like():
     try:
         document_data = request.json
@@ -242,8 +245,8 @@ def like():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@vagabond_required
 @app.route('/user/like/<vagabond_id>', methods=['GET'])
+@vagabond_required
 def get_like():
     try:
         places_liked = read_document("vagabond", vagabond_id)["likes"]
@@ -253,8 +256,9 @@ def get_like():
 
 
 #### Activity ######
-@admin_required
+
 @app.route('/activity/create', methods=['POST'])
+@admin_required
 def create_activity():
     try:
         document_data = request.json
@@ -267,8 +271,9 @@ def create_activity():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@admin_or_vagabond_required
+
 @app.route('/activity/readall', methods=['GET'])
+@admin_or_vagabond_required
 def get_all_activity():
     try:
         places = read_all_documents("activity")
