@@ -152,9 +152,9 @@ def logout():
 ############ Places ###########
 
 
-@app.route('/places', methods=['GET'])
+@app.route('/places/readall', methods=['GET'])
 @admin_or_vagabond_required
-def get_all_places(collection_name):
+def get_all_places():
     try:
         places = read_all_documents("places")
         
