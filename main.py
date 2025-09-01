@@ -211,7 +211,29 @@ def get_user_suppositions(user_id):
         return jsonify({"success": True, "data": final_doc}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-    
+
+@app.route('/user/<user_id>/supposition/read/<supposition_id>', methods=['GET'])
+@admin_or_vagabond_required
+def get_one_suppositions(user_id, supposition_id):
+    try:
+        suppositions = db.collection("suppositions").document(user_id).collection("supposition").document(supposition_id)
+        final_doc = suppositions.get().to_dict()
+
+        return jsonify({"success": True, "data": final_doc}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/user/<user_id>/supposition/delete/<supposition_id>', methods=['POST'])
+@admin_required
+def delete_suppositions(user_id, supposition_id):
+    try:
+        suppositions = db.collection("suppositions").document(user_id).collection("supposition").document(supposition_id).delete()
+        return jsonify({"success": True, "data": "suppression réussi"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+
 @app.route('/supposition/readall', methods=['GET'])
 @admin_required
 def get_all_suppositions():
@@ -227,7 +249,7 @@ def get_all_suppositions():
         return jsonify({"success": True, "data": datas}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-    
+
 
 ########## Likes ###########
 @app.route('/like/<vagabond_id>/<place_id>', methods=['POST'])
